@@ -1,22 +1,25 @@
 import { DiscountItemProps } from '@/types/itemTypes';
-import { useState } from 'react';
 import { IoMdCheckmark } from 'react-icons/io';
 
 const formatRate = (rate: number) => {
   return rate < 1 ? `${Math.round(rate * 100)}%` : `${rate}원`;
 };
 
-const DiscountItem = ({ name, rate }: DiscountItemProps) => {
-  const [isSelected, setIsSelected] = useState(false);
+interface DiscountItemComponentProps extends DiscountItemProps {
+  isSelected: boolean;
+  onClick: () => void;
+}
 
-  const handleClick = () => {
-    setIsSelected((prev) => !prev);
-  };
-
+const DiscountItem = ({
+  name,
+  rate,
+  isSelected,
+  onClick,
+}: DiscountItemComponentProps) => {
   return (
     <div
       className='flex w-full cursor-pointer items-center justify-between px-4 py-2'
-      onClick={handleClick}
+      onClick={onClick}
     >
       <div className='grow'>
         <p>{name}</p>

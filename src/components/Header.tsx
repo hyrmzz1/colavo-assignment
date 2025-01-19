@@ -1,9 +1,13 @@
 import useViewStore, { ViewType } from '@/stores/useViewStore';
+import useCartStore from '@/stores/useCartStore';
 import { IoAdd, IoClose } from 'react-icons/io5';
 
 const Header = () => {
   const currView = useViewStore((state) => state.currView);
   const setView = useViewStore((state) => state.setView);
+  const resetLocalSelections = useCartStore(
+    (state) => state.resetLocalSelections
+  );
 
   const headerTitle: Record<Exclude<ViewType, 'cart'>, string> = {
     service: '시술메뉴',
@@ -25,7 +29,10 @@ const Header = () => {
     <div className='flex items-center justify-between px-2 py-4'>
       <IoClose
         className='text-gray h-6 w-6 cursor-pointer'
-        onClick={() => setView('cart')}
+        onClick={() => {
+          resetLocalSelections();
+          setView('cart');
+        }}
       />
 
       {currView === 'cart' ? (

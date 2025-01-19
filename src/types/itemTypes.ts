@@ -1,12 +1,12 @@
 export interface ServiceItemProps {
-  key: string;
+  key?: string;
   count?: number;
   name: string;
   price: number;
 }
 
 export interface DiscountItemProps {
-  key: string;
+  key?: string;
   name: string;
   rate: number;
 }

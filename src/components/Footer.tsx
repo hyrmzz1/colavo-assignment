@@ -1,8 +1,11 @@
 import useViewStore, { ViewType } from '@/stores/useViewStore';
+import useCartStore from '@/stores/useCartStore';
 import { Button } from './ui/button';
 
 const Footer = () => {
   const currView = useViewStore((state) => state.currView);
+  const setView = useViewStore((state) => state.setView);
+  const handleComplete = useCartStore((state) => state.handleComplete);
   const isCartView = currView === 'cart';
 
   const containerStyles = isCartView
@@ -29,7 +32,14 @@ const Footer = () => {
       ) : (
         <>
           <p className='text-center text-xs'>{footerMessages[currView]}</p>
-          <Button className='w-full' variant='secondary'>
+          <Button
+            className='w-full'
+            variant='secondary'
+            onClick={() => {
+              handleComplete();
+              setView('cart');
+            }}
+          >
             완료
           </Button>
         </>

@@ -1,18 +1,21 @@
-import { useState } from 'react';
 import { ServiceItemProps } from '@/types/itemTypes';
 import { IoMdCheckmark } from 'react-icons/io';
 
-const ServiceItem = ({ name, price }: ServiceItemProps) => {
-  const [isSelected, setIsSelected] = useState(false);
+interface ServiceItemComponentProps extends ServiceItemProps {
+  isSelected: boolean;
+  onClick: () => void;
+}
 
-  const handleClick = () => {
-    setIsSelected((prev) => !prev);
-  };
-
+const ServiceItem = ({
+  name,
+  price,
+  isSelected,
+  onClick,
+}: ServiceItemComponentProps) => {
   return (
     <div
       className='flex w-full cursor-pointer items-center justify-between px-4 py-2'
-      onClick={handleClick}
+      onClick={onClick}
     >
       <div className='grow'>
         <p>{name}</p>

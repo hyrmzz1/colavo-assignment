@@ -1,9 +1,11 @@
+import useCartStore from '@/stores/useCartStore';
 import { useGetServiceItems } from '@/hooks/useGetItems';
 import { ServiceItemProps } from '@/types/itemTypes';
 import ServiceItem from '@/components/ServiceItem';
 
 const ServicePage = () => {
   const { isPending, isError, data } = useGetServiceItems();
+  const { isServiceSelected, toggleLocalService } = useCartStore();
 
   if (isPending) {
     return (
@@ -26,11 +28,17 @@ const ServicePage = () => {
 
   return (
     <ul className='divide-y-[1px]'>
-      {Object.entries(data).map(([key, item]: [string, ServiceItemProps]) => (
-        <li key={key}>
-          <ServiceItem key={key} name={item.name} price={item.price} />
-        </li>
-      ))}
+      {data &&
+        Object.entries(data).map(([key, item]: [string, ServiceItemProps]) => (
+          <li key={key}>
+            <ServiceItem
+              name={item.name}
+              price={item.price}
+              isSelected={isServiceSelected(key)}
+              onClick={() => toggleLocalService(key, { ...item, key })}
+            />
+          </li>
+        ))}
     </ul>
   );
 };
