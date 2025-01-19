@@ -1,5 +1,5 @@
 export interface ServiceItemProps {
-  count: number;
+  count?: number;
   name: string;
   price: number;
 }

@@ -7,7 +7,7 @@ const Page = () => {
   const currView = useViewStore((state) => state.currView);
 
   return (
-    <div className='grow'>
+    <div className='grow overflow-y-auto'>
       {currView === 'cart' && <CartPage />}
       {currView === 'service' && <ServicePage />}
       {currView === 'discount' && <DiscountPage />}
