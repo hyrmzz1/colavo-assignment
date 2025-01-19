@@ -74,22 +74,30 @@ const useCartStore = create<CartState>((set, get) => ({
 
   removeServiceItem: (key) =>
     set((state) => {
-      const newMap = new Map(state.selectedServices);
-      if (newMap.has(key)) {
-        newMap.delete(key);
-        console.log('삭제된 서비스:', key, newMap);
-      }
-      return { selectedServices: new Map(newMap) }; // 새로운 Map 객체로 변경
+      const newSelectedServices = new Map(state.selectedServices);
+      newSelectedServices.delete(key);
+
+      const newLocalSelectedServices = new Map(state.localSelectedServices);
+      newLocalSelectedServices.delete(key);
+
+      return {
+        selectedServices: new Map(newSelectedServices),
+        localSelectedServices: new Map(newLocalSelectedServices),
+      };
     }),
 
   removeDiscountItem: (key) =>
     set((state) => {
-      const newMap = new Map(state.selectedDiscounts);
-      if (newMap.has(key)) {
-        newMap.delete(key);
-        console.log('삭제된 할인:', key, newMap);
-      }
-      return { selectedDiscounts: new Map(newMap) }; // 새로운 Map 객체로 변경
+      const newSelectedDiscounts = new Map(state.selectedDiscounts);
+      newSelectedDiscounts.delete(key);
+
+      const newLocalSelectedDiscounts = new Map(state.localSelectedDiscounts);
+      newLocalSelectedDiscounts.delete(key);
+
+      return {
+        selectedDiscounts: new Map(newSelectedDiscounts),
+        localSelectedDiscounts: new Map(newLocalSelectedDiscounts),
+      };
     }),
 }));
 
