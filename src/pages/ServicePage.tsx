@@ -12,6 +12,7 @@ const ServicePage = () => {
       </div>
     );
   }
+
   if (isError) {
     return (
       <div className='flex h-full items-center justify-center'>
@@ -25,12 +26,11 @@ const ServicePage = () => {
 
   return (
     <ul className='divide-y-[1px]'>
-      {data &&
-        Object.entries(data).map(([key, item]: [string, ServiceItemProps]) => (
-          <li key={key}>
-            <ServiceItem name={item.name} price={item.price} />
-          </li>
-        ))}
+      {Object.entries(data).map(([key, item]: [string, ServiceItemProps]) => (
+        <li key={key}>
+          <ServiceItem key={key} name={item.name} price={item.price} />
+        </li>
+      ))}
     </ul>
   );
 };

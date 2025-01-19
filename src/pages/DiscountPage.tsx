@@ -1,6 +1,6 @@
-import DiscountItem from '@/components/DiscountItem';
 import { useGetDiscountItems } from '@/hooks/useGetItems';
 import { DiscountItemProps } from '@/types/itemTypes';
+import DiscountItem from '@/components/DiscountItem';
 
 const DiscountPage = () => {
   const { isPending, isError, data } = useGetDiscountItems();
@@ -29,7 +29,7 @@ const DiscountPage = () => {
       {data &&
         Object.entries(data).map(([key, item]: [string, DiscountItemProps]) => (
           <li key={key}>
-            <DiscountItem name={item.name} rate={item.rate} />
+            <DiscountItem key={key} name={item.name} rate={item.rate} />
           </li>
         ))}
     </ul>
