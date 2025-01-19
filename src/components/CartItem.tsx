@@ -1,6 +1,14 @@
 import useCartStore from '@/stores/useCartStore';
 import { ServiceItemProps, DiscountItemProps } from '@/types/itemTypes';
 import { IoClose } from 'react-icons/io5';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 const formatRate = (rate: number) => {
   return rate < 1 ? `${Math.round(rate * 100)}%` : `${rate}원`;
@@ -25,11 +33,26 @@ export const CartServiceItem = ({
         {/* TODO) currency_code에 맞게 가격 포맷팅 */}
         <p className='text-gray text-xs'>{price}원</p>
       </div>
-      <div>{count}</div>
-      <IoClose
-        className='text-gray cursor-pointer'
-        onClick={() => removeServiceItem(itemKey)}
-      />
+      <div className='flex items-center gap-x-2'>
+        <Select>
+          <SelectTrigger>
+            <SelectValue placeholder={count} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                <SelectItem key={num} value={String(num)}>
+                  {num}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <IoClose
+          className='text-gray cursor-pointer'
+          onClick={() => removeServiceItem(itemKey)}
+        />
+      </div>
     </div>
   );
 };
