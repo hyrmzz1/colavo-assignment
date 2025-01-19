@@ -1,8 +1,9 @@
 import useViewStore from '@/stores/useViewStore';
 import useCartStore from '@/stores/useCartStore';
+import { CartDiscountItem, CartServiceItem } from '@/components/CartItem';
+import { DiscountItemProps, ServiceItemProps } from '@/types/itemTypes';
 import { IoIosAddCircle } from 'react-icons/io';
 import { Button } from '@/components/ui/button';
-import { CartDiscountItem, CartServiceItem } from '@/components/CartItem';
 
 const CartPage = () => {
   const setView = useViewStore((state) => state.setView);
@@ -30,17 +31,34 @@ const CartPage = () => {
         ))}
       </div>
 
-      <main className='divide-y-[1px] pt-4'>
-        {/* 선택된 시술 항목 렌더링 */}
-        {Array.from(selectedServices.values()).map((service) => (
-          <CartServiceItem key={service.key} {...service} />
-        ))}
+      <ul className='divide-y-[1px] pt-4'>
+        {Array.from(selectedServices.entries()).map(
+          ([key, item]: [string, ServiceItemProps]) => (
+            <li key={key}>
+              <CartServiceItem
+                itemKey={key}
+                key={key}
+                name={item.name}
+                price={item.price}
+                count={item.count}
+              />
+            </li>
+          )
+        )}
 
-        {/* 선택된 할인 항목 렌더링 */}
-        {Array.from(selectedDiscounts.values()).map((discount) => (
-          <CartDiscountItem key={discount.key} {...discount} />
-        ))}
-      </main>
+        {Array.from(selectedDiscounts.entries()).map(
+          ([key, item]: [string, DiscountItemProps]) => (
+            <li key={key}>
+              <CartDiscountItem
+                itemKey={key}
+                key={item.key}
+                name={item.name}
+                rate={item.rate}
+              />
+            </li>
+          )
+        )}
+      </ul>
     </>
   );
 };

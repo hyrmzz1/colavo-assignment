@@ -32,6 +32,7 @@ const ServicePage = () => {
         Object.entries(data).map(([key, item]: [string, ServiceItemProps]) => (
           <li key={key}>
             <ServiceItem
+              key={item.key}
               name={item.name}
               price={item.price}
               isSelected={isServiceSelected(key)}
