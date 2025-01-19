@@ -11,7 +11,7 @@ import {
 } from './ui/select';
 
 const formatRate = (rate: number) => {
-  return rate < 1 ? `${Math.round(rate * 100)}%` : `${rate}원`;
+  return rate < 1 ? `${Math.round(rate * 100)}%` : `${rate.toLocaleString()}원`;
 };
 
 interface CartServiceItemProps extends ServiceItemProps {
@@ -31,7 +31,7 @@ export const CartServiceItem = ({
       <div className='grow'>
         <p>{name}</p>
         {/* TODO) currency_code에 맞게 가격 포맷팅 */}
-        <p className='text-gray text-xs'>{price}원</p>
+        <p className='text-gray text-xs'>{price.toLocaleString()}원</p>
       </div>
       <div className='flex items-center gap-x-2'>
         <Select>
@@ -67,6 +67,7 @@ export const CartDiscountItem = ({
   rate,
 }: CartDiscountItemProps) => {
   const removeDiscountItem = useCartStore((state) => state.removeDiscountItem);
+  const selectedServices = useCartStore((state) => state.selectedServices);
 
   return (
     <div className='flex w-full items-center justify-between px-4 py-2'>
@@ -79,11 +80,31 @@ export const CartDiscountItem = ({
           -총 할인 금액({formatRate(rate)})
         </p>
       </div>
-      <div>수정</div>
-      <IoClose
-        className='text-gray cursor-pointer'
-        onClick={() => removeDiscountItem(itemKey)}
-      />
+      <div className='flex items-center gap-x-2'>
+        <Select>
+          <SelectTrigger>
+            <SelectValue placeholder='수정' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {Array.from(selectedServices.entries()).map(([key, item]) => (
+                <SelectItem key={key} value={String(item.count)}>
+                  <p>
+                    {item.name} x {item.count}개
+                  </p>
+                  <p className='text-gray text-xs'>
+                    {item.price.toLocaleString()}원
+                  </p>
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <IoClose
+          className='text-gray cursor-pointer'
+          onClick={() => removeDiscountItem(itemKey)}
+        />
+      </div>
     </div>
   );
 };
