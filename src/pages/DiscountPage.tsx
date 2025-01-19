@@ -1,3 +1,4 @@
+import DiscountItem from '@/components/DiscountItem';
 import { useGetDiscountItems } from '@/hooks/useGetItems';
 import { DiscountItemProps } from '@/types/itemTypes';
 
@@ -5,21 +6,30 @@ const DiscountPage = () => {
   const { isPending, isError, data } = useGetDiscountItems();
 
   if (isPending) {
-    return <span>로딩 중...</span>;
+    return (
+      <div className='flex h-full items-center justify-center'>
+        <p>로딩 중...</p>
+      </div>
+    );
   }
 
   if (isError) {
-    return <span>할인 항목을 불러오는 중 오류가 발생했습니다.</span>;
+    return (
+      <div className='flex h-full items-center justify-center'>
+        <p>
+          할인 항목을 불러오는 중<br />
+          오류가 발생했습니다.
+        </p>
+      </div>
+    );
   }
 
   return (
-    <ul>
+    <ul className='divide-y-[1px]'>
       {data &&
         Object.entries(data).map(([key, item]: [string, DiscountItemProps]) => (
           <li key={key}>
-            <p>
-              {item.name} {item.rate}
-            </p>
+            <DiscountItem name={item.name} rate={item.rate} />
           </li>
         ))}
     </ul>
