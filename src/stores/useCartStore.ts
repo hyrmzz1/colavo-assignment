@@ -1,10 +1,20 @@
 import { create } from 'zustand';
 import { ServiceItemProps, DiscountItemProps } from '@/types/itemTypes';
 
+const calculateTotalPrice = (
+  services: Map<string, ServiceItemProps>
+): number => {
+  return Array.from(services.values()).reduce(
+    (total, service) => total + service.price * (service.count ?? 1),
+    0
+  );
+};
+
 interface CartState {
   // 선택된(장바구니에 반영되는) 시술 및 할인 목록
   selectedServices: Map<string, ServiceItemProps>;
   selectedDiscounts: Map<string, DiscountItemProps>;
+  totalPrice: number;
 
   // 시술 및 할인 페이지에서 변경 중인 (임시) 선택 항목
   localSelectedServices: Map<string, ServiceItemProps>;
@@ -24,14 +34,18 @@ interface CartState {
   isServiceSelected: (key: string) => boolean;
   isDiscountSelected: (key: string) => boolean;
 
-  // 장바구니에서 시술 또는 할인 항목 제거
-  removeServiceItem: (key: string) => void;
+  // 특정 시술 항목의 count 설정
+  setServiceCount: (key: string, count: number) => void;
+
+  // 장바구니에서 할인 항목 제거
   removeDiscountItem: (key: string) => void;
 }
 
 const useCartStore = create<CartState>((set, get) => ({
   selectedServices: new Map(),
   selectedDiscounts: new Map(),
+  totalPrice: 0,
+
   localSelectedServices: new Map(),
   localSelectedDiscounts: new Map(),
 
@@ -58,10 +72,25 @@ const useCartStore = create<CartState>((set, get) => ({
     }),
 
   handleComplete: () =>
-    set((state) => ({
-      selectedServices: new Map(state.localSelectedServices),
-      selectedDiscounts: new Map(state.localSelectedDiscounts),
-    })),
+    set((state) => {
+      const newSelectedServices = new Map(state.localSelectedServices);
+      const newSelectedDiscounts = new Map(state.localSelectedDiscounts);
+      const newTotalPrice = calculateTotalPrice(newSelectedServices);
+
+      if (
+        newSelectedServices.size === state.selectedServices.size &&
+        newSelectedDiscounts.size === state.selectedDiscounts.size &&
+        newTotalPrice === state.totalPrice
+      ) {
+        return state;
+      }
+
+      return {
+        selectedServices: newSelectedServices,
+        selectedDiscounts: newSelectedDiscounts,
+        totalPrice: newTotalPrice,
+      };
+    }),
 
   resetLocalSelections: () =>
     set(() => ({
@@ -72,31 +101,34 @@ const useCartStore = create<CartState>((set, get) => ({
   isServiceSelected: (key) => get().localSelectedServices.has(key),
   isDiscountSelected: (key) => get().localSelectedDiscounts.has(key),
 
-  removeServiceItem: (key) =>
+  setServiceCount: (key: string, count: number) =>
     set((state) => {
       const newSelectedServices = new Map(state.selectedServices);
-      newSelectedServices.delete(key);
+      const service = newSelectedServices.get(key);
+      if (!service || service.count === count) return state;
 
-      const newLocalSelectedServices = new Map(state.localSelectedServices);
-      newLocalSelectedServices.delete(key);
+      count > 0
+        ? newSelectedServices.set(key, { ...service, count })
+        : newSelectedServices.delete(key);
 
       return {
-        selectedServices: new Map(newSelectedServices),
-        localSelectedServices: new Map(newLocalSelectedServices),
+        selectedServices: newSelectedServices,
+        totalPrice: calculateTotalPrice(newSelectedServices),
       };
     }),
 
   removeDiscountItem: (key) =>
     set((state) => {
       const newSelectedDiscounts = new Map(state.selectedDiscounts);
+      if (!newSelectedDiscounts.has(key)) return state;
       newSelectedDiscounts.delete(key);
 
       const newLocalSelectedDiscounts = new Map(state.localSelectedDiscounts);
       newLocalSelectedDiscounts.delete(key);
 
       return {
-        selectedDiscounts: new Map(newSelectedDiscounts),
-        localSelectedDiscounts: new Map(newLocalSelectedDiscounts),
+        selectedDiscounts: newSelectedDiscounts,
+        localSelectedDiscounts: newLocalSelectedDiscounts,
       };
     }),
 }));

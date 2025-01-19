@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 const Footer = () => {
   const currView = useViewStore((state) => state.currView);
   const setView = useViewStore((state) => state.setView);
+  const totalPrice = useCartStore((state) => state.totalPrice);
   const handleComplete = useCartStore((state) => state.handleComplete);
   const isCartView = currView === 'cart';
 
@@ -25,7 +26,7 @@ const Footer = () => {
         <>
           <div className='flex w-full items-center justify-between'>
             <p className='text-gray text-xs'>합계</p>
-            <p className='text-xl'>0원</p>
+            <p className='text-xl'>{totalPrice.toLocaleString()}원</p>
           </div>
           <Button className='w-full'>다음</Button>
         </>

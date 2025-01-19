@@ -20,7 +20,7 @@ const ServiceItem = ({
       <div className='grow'>
         <p>{name}</p>
         {/* TODO) currency_code에 맞게 가격 포맷팅 */}
-        <p className='text-gray text-xs'>{price}원</p>
+        <p className='text-gray text-xs'>{price.toLocaleString()}원</p>
       </div>
       <div className='h-6 w-6 shrink-0'>
         {isSelected && <IoMdCheckmark className='text-purple h-6 w-6' />}

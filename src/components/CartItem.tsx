@@ -24,17 +24,22 @@ export const CartServiceItem = ({
   price,
   count,
 }: CartServiceItemProps) => {
-  const removeServiceItem = useCartStore((state) => state.removeServiceItem);
+  const setServiceCount = useCartStore((state) => state.setServiceCount);
 
   return (
     <div className='flex w-full items-center justify-between px-4 py-2'>
       <div className='grow'>
         <p>{name}</p>
         {/* TODO) currency_code에 맞게 가격 포맷팅 */}
-        <p className='text-gray text-xs'>{price.toLocaleString()}원</p>
+        <p className='text-gray text-xs'>
+          {(price * (count ?? 1)).toLocaleString()}원
+        </p>
       </div>
       <div className='flex items-center gap-x-2'>
-        <Select>
+        <Select
+          value={String(count)}
+          onValueChange={(value) => setServiceCount(itemKey, Number(value))}
+        >
           <SelectTrigger>
             <SelectValue placeholder={count} />
           </SelectTrigger>
@@ -50,7 +55,7 @@ export const CartServiceItem = ({
         </Select>
         <IoClose
           className='text-gray cursor-pointer'
-          onClick={() => removeServiceItem(itemKey)}
+          onClick={() => setServiceCount(itemKey, 0)}
         />
       </div>
     </div>
