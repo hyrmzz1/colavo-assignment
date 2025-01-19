@@ -33,6 +33,7 @@ const ServicePage = () => {
           <li key={key}>
             <ServiceItem
               key={item.key}
+              count={item.count}
               name={item.name}
               price={item.price}
               isSelected={isServiceSelected(key)}
