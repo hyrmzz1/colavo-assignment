@@ -8,7 +8,7 @@ interface ViewState {
 }
 
 const useViewStore = create<ViewState>((set) => ({
-  currView: 'discount',
+  currView: 'cart',
   setView: (view) => set({ currView: view }),
 }));
 
