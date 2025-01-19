@@ -14,10 +14,10 @@ const Header = () => {
 
   return (
     <div className='flex items-center justify-between p-2'>
-      <IoClose className='h-6 w-6 text-gray-400' />
+      <IoClose className='text-gray h-6 w-6' />
       <div className='flex grow flex-col items-center'>
         <p className='text-sm'>양혜림</p>
-        <p className='text-xs'>{formattedDate}</p>
+        <p className='text-gray text-xs'>{formattedDate}</p>
       </div>
       <div className='h-6 w-6'></div>
     </div>
