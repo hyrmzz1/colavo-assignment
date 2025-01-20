@@ -1,19 +1,58 @@
 import { create } from 'zustand';
 import { ServiceItemProps, DiscountItemProps } from '@/types/itemTypes';
 
-const calculateTotalPrice = (
-  services: Map<string, ServiceItemProps>
+// 전체 할인 금액 계산 함수 (할인된 항목 별 총 할인 금액을 구함)
+const calculateDiscountAmount = (
+  services: Map<string, ServiceItemProps>,
+  discounts: Map<string, DiscountItemProps>,
+  appliedDiscounts: Map<string, Set<string>>
+): Map<string, number> => {
+  const discountAmounts = new Map<string, number>();
+
+  for (const [discountKey, serviceKeys] of appliedDiscounts.entries()) {
+    const discount = discounts.get(discountKey);
+    if (!discount) continue;
+
+    let totalDiscount = 0;
+    for (const serviceKey of serviceKeys) {
+      const service = services.get(serviceKey);
+      if (service) {
+        totalDiscount += service.price * (service.count ?? 1) * discount.rate;
+      }
+    }
+    discountAmounts.set(discountKey, totalDiscount);
+  }
+
+  return discountAmounts;
+};
+
+// 할인 적용된 총 가격 계산 함수
+const calcDiscountedTotalPrice = (
+  services: Map<string, ServiceItemProps>,
+  discounts: Map<string, DiscountItemProps>,
+  appliedDiscounts: Map<string, Set<string>>
 ): number => {
-  return Array.from(services.values()).reduce(
-    (total, service) => total + service.price * (service.count ?? 1),
-    0
-  );
+  let total = 0;
+  for (const service of services.values()) {
+    let discountRate = 0;
+    for (const [discountKey, serviceKeys] of appliedDiscounts.entries()) {
+      if (serviceKeys.has(service.key)) {
+        const discount = discounts.get(discountKey);
+        if (discount) discountRate += discount.rate;
+      }
+    }
+    total += service.price * (service.count ?? 1) * (1 - discountRate);
+  }
+  return Math.max(total, 0);
 };
 
 interface CartState {
   // 선택된(장바구니에 반영되는) 시술 및 할인 목록
   selectedServices: Map<string, ServiceItemProps>;
   selectedDiscounts: Map<string, DiscountItemProps>;
+
+  appliedDiscounts: Map<string, Set<string>>; // 할인 적용된 항목 목록
+  discountAmounts: Map<string, number>; // 각 할인 항목별 총 할인 금액
   totalPrice: number;
 
   // 시술 및 할인 페이지에서 변경 중인 (임시) 선택 항목
@@ -37,13 +76,15 @@ interface CartState {
   // 특정 시술 항목의 count 설정
   setServiceCount: (key: string, count: number) => void;
 
-  // 장바구니에서 할인 항목 제거
-  removeDiscountItem: (key: string) => void;
+  // 특정 시술 항목에 할인 적용 여부
+  toggleServiceDiscount: (discountKey: string, serviceKey: string) => void;
 }
 
 const useCartStore = create<CartState>((set, get) => ({
   selectedServices: new Map(),
   selectedDiscounts: new Map(),
+  appliedDiscounts: new Map(),
+  discountAmounts: new Map(),
   totalPrice: 0,
 
   localSelectedServices: new Map(),
@@ -52,22 +93,14 @@ const useCartStore = create<CartState>((set, get) => ({
   toggleLocalService: (key, item) =>
     set((state) => {
       const newMap = new Map(state.localSelectedServices);
-      if (newMap.has(key)) {
-        newMap.delete(key);
-      } else {
-        newMap.set(key, item);
-      }
+      newMap.has(key) ? newMap.delete(key) : newMap.set(key, item);
       return { localSelectedServices: newMap };
     }),
 
   toggleLocalDiscount: (key, item) =>
     set((state) => {
       const newMap = new Map(state.localSelectedDiscounts);
-      if (newMap.has(key)) {
-        newMap.delete(key);
-      } else {
-        newMap.set(key, item);
-      }
+      newMap.has(key) ? newMap.delete(key) : newMap.set(key, item);
       return { localSelectedDiscounts: newMap };
     }),
 
@@ -75,20 +108,51 @@ const useCartStore = create<CartState>((set, get) => ({
     set((state) => {
       const newSelectedServices = new Map(state.localSelectedServices);
       const newSelectedDiscounts = new Map(state.localSelectedDiscounts);
-      const newTotalPrice = calculateTotalPrice(newSelectedServices);
+      const newAppliedDiscounts = new Map();
 
-      if (
-        newSelectedServices.size === state.selectedServices.size &&
-        newSelectedDiscounts.size === state.selectedDiscounts.size &&
-        newTotalPrice === state.totalPrice
-      ) {
-        return state;
+      for (const discountKey of newSelectedDiscounts.keys()) {
+        // 기존에 없던 할인 항목이라면, 모든 시술에 기본 적용
+        if (!newAppliedDiscounts.has(discountKey)) {
+          newAppliedDiscounts.set(
+            discountKey,
+            new Set(newSelectedServices.keys())
+          );
+        } else {
+          // 기존에 있던 할인 항목이면, 선택된 시술 중 삭제된 시술을 필터링
+          newAppliedDiscounts.set(
+            discountKey,
+            new Set(
+              Array.from<string>(
+                newAppliedDiscounts.get(discountKey) ?? []
+              ).filter((serviceKey) => newSelectedServices.has(serviceKey))
+            )
+          );
+        }
+
+        // 만약 적용된 시술이 없는 할인 항목이 존재하면 자동 삭제
+        if (newAppliedDiscounts.get(discountKey)?.size === 0) {
+          newAppliedDiscounts.delete(discountKey);
+          newSelectedDiscounts.delete(discountKey);
+        }
       }
+
+      // 할인 금액 다시 계산
+      const newDiscountAmounts = calculateDiscountAmount(
+        newSelectedServices,
+        newSelectedDiscounts,
+        newAppliedDiscounts
+      );
 
       return {
         selectedServices: newSelectedServices,
         selectedDiscounts: newSelectedDiscounts,
-        totalPrice: newTotalPrice,
+        appliedDiscounts: newAppliedDiscounts,
+        discountAmounts: newDiscountAmounts,
+        totalPrice: calcDiscountedTotalPrice(
+          newSelectedServices,
+          newSelectedDiscounts,
+          newAppliedDiscounts
+        ),
       };
     }),
 
@@ -111,24 +175,59 @@ const useCartStore = create<CartState>((set, get) => ({
         ? newSelectedServices.set(key, { ...service, count })
         : newSelectedServices.delete(key);
 
+      const newDiscountAmounts = calculateDiscountAmount(
+        newSelectedServices,
+        state.selectedDiscounts,
+        state.appliedDiscounts
+      );
+
       return {
         selectedServices: newSelectedServices,
-        totalPrice: calculateTotalPrice(newSelectedServices),
+        discountAmounts: newDiscountAmounts,
+        totalPrice: calcDiscountedTotalPrice(
+          newSelectedServices,
+          state.selectedDiscounts,
+          state.appliedDiscounts
+        ),
       };
     }),
 
-  removeDiscountItem: (key) =>
+  toggleServiceDiscount: (discountKey, serviceKey) =>
     set((state) => {
-      const newSelectedDiscounts = new Map(state.selectedDiscounts);
-      if (!newSelectedDiscounts.has(key)) return state;
-      newSelectedDiscounts.delete(key);
+      const newAppliedDiscounts = new Map(state.appliedDiscounts);
+      const discountServices =
+        newAppliedDiscounts.get(discountKey) ?? new Set();
 
-      const newLocalSelectedDiscounts = new Map(state.localSelectedDiscounts);
-      newLocalSelectedDiscounts.delete(key);
+      discountServices.has(serviceKey)
+        ? discountServices.delete(serviceKey)
+        : discountServices.add(serviceKey);
+
+      if (discountServices.size === 0) {
+        newAppliedDiscounts.delete(discountKey);
+      } else {
+        newAppliedDiscounts.set(discountKey, discountServices);
+      }
+
+      const newSelectedDiscounts = new Map(state.selectedDiscounts);
+      if (!newAppliedDiscounts.has(discountKey)) {
+        newSelectedDiscounts.delete(discountKey);
+      }
+
+      const newDiscountAmounts = calculateDiscountAmount(
+        state.selectedServices,
+        newSelectedDiscounts,
+        newAppliedDiscounts
+      );
 
       return {
+        appliedDiscounts: newAppliedDiscounts,
         selectedDiscounts: newSelectedDiscounts,
-        localSelectedDiscounts: newLocalSelectedDiscounts,
+        discountAmounts: newDiscountAmounts,
+        totalPrice: calcDiscountedTotalPrice(
+          state.selectedServices,
+          newSelectedDiscounts,
+          newAppliedDiscounts
+        ),
       };
     }),
 }));
