@@ -68,15 +68,17 @@ src
 ### 시술 및 할인 선택 기능
 
 - 사용자가 원하는 시술 및 할인 항목을 선택 가능
-- selectedServices, selectedDiscounts, localSelectedServices,
-  localSelectedDiscounts를 활용하여 상태 관리 최적화
-  - selectedServices / selectedDiscounts: 장바구니에 최종 추가된 항목
-  - localSelectedServices / localSelectedDiscounts를: 사용자가 선택했지만 "완료"
-    버튼을 누르지 않은 임시 항목
-  - "완료" 버튼 클릭 시 localSelectedServices(또는 localSelectedDiscounts를)가
-    selectedServices(또는 selectedDiscounts)에 추가되어 장바구니에 반영됨
-  - "X" 버튼 클릭 시 localSelectedServices를 초기화해 장바구니에 반영되지 않음
-- 이미 선택한 항목을 표시하여 중복 선택 방지
+- 상태 관리 최적화
+  - `selectedServices` / `selectedDiscounts`: 장바구니에 최종 추가된 항목
+  - `localSelectedServices` / `localSelectedDiscounts를`: 사용자가 선택했지만
+    "완료" 버튼을 누르지 않은 임시 항목
+  - "완료" 버튼 클릭 시 `localSelectedServices`(또는 `localSelectedDiscounts`)를
+    `selectedServices`(또는 `selectedDiscounts`)로 반영해 장바구니 목록에 저장
+  - "X" 버튼 클릭 시 `localSelectedServices`(또는 `localSelectedDiscounts`)를
+    초기화해 임시 선택 항목을 장바구니에 반영하지 않음
+  - `toggleLocalService`, `toggleLocalDiscount`을 사용하여 항목 선택 및 해제
+    기능 구현
+    - 동일한 항목을 다시 선택하면 해제되는 토글 방식을 적용해 중복 선택 방지
 
 ### 장바구니 기능
 
