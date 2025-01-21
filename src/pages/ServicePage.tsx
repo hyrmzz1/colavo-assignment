@@ -2,6 +2,7 @@ import useCartStore from '@/stores/useCartStore';
 import { useGetServiceItems } from '@/hooks/useGetItems';
 import { ServiceItemProps } from '@/types/itemTypes';
 import ServiceItem from '@/components/ServiceItem';
+import ClipLoader from 'react-spinners/ClipLoader';
 
 const ServicePage = () => {
   const { isPending, isError, data } = useGetServiceItems();
@@ -10,7 +11,7 @@ const ServicePage = () => {
   if (isPending) {
     return (
       <div className='flex h-full items-center justify-center'>
-        <p>로딩 중...</p>
+        <ClipLoader color='#8b5cf6' speedMultiplier={0.5} />
       </div>
     );
   }

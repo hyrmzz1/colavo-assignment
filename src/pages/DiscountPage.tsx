@@ -2,6 +2,7 @@ import useCartStore from '@/stores/useCartStore';
 import { useGetDiscountItems } from '@/hooks/useGetItems';
 import { DiscountItemProps } from '@/types/itemTypes';
 import DiscountItem from '@/components/DiscountItem';
+import ClipLoader from 'react-spinners/ClipLoader';
 
 const DiscountPage = () => {
   const { isPending, isError, data } = useGetDiscountItems();
@@ -10,7 +11,7 @@ const DiscountPage = () => {
   if (isPending) {
     return (
       <div className='flex h-full items-center justify-center'>
-        <p>로딩 중...</p>
+        <ClipLoader color='#8b5cf6' speedMultiplier={0.5} />
       </div>
     );
   }
