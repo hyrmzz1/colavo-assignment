@@ -5,9 +5,14 @@ import { Button } from './ui/button';
 const Footer = () => {
   const currView = useViewStore((state) => state.currView);
   const setView = useViewStore((state) => state.setView);
-  const totalPrice = useCartStore((state) => state.totalPrice);
-  const handleComplete = useCartStore((state) => state.handleComplete);
   const isCartView = currView === 'cart';
+
+  // * Zustand 상태 설명
+  // selectedServices / selectedDiscounts: "완료" 버튼을 눌러 장바구니에 최종 추가된 항목
+  // localSelectedServices / localSelectedDiscounts: 사용자가 선택했지만 "완료" 버튼을 누르지 않은 임시 선택 항목
+  // 푸터의 '완료' 버튼을 누르면 임시 선택된 항목들이 장바구니에 추가된다.
+  const handleComplete = useCartStore((state) => state.handleComplete);
+  const totalPrice = useCartStore((state) => state.totalPrice);
 
   const containerStyles = isCartView
     ? 'border-gray-light'
@@ -25,7 +30,8 @@ const Footer = () => {
       {isCartView ? (
         <>
           <div className='flex w-full items-center justify-between'>
-            <p className='text-gray text-xs'>합계</p>
+            <p className='text-xs text-gray'>합계</p>
+            {/* TODO) totalPrice에 formatCurrency()적용 */}
             <p className='text-xl'>{totalPrice.toLocaleString()}원</p>
           </div>
           <Button className='w-full'>다음</Button>
