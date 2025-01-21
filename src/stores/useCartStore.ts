@@ -1,95 +1,55 @@
 import { create } from 'zustand';
 import { ServiceItemProps, DiscountItemProps } from '@/types/itemTypes';
-
-// 전체 할인 금액 계산 함수 (할인된 항목 별 총 할인 금액을 구함)
-const calculateDiscountAmount = (
-  services: Map<string, ServiceItemProps>,
-  discounts: Map<string, DiscountItemProps>,
-  appliedDiscounts: Map<string, Set<string>>
-): Map<string, number> => {
-  const discountAmounts = new Map<string, number>();
-
-  for (const [discountKey, serviceKeys] of appliedDiscounts.entries()) {
-    const discount = discounts.get(discountKey);
-    if (!discount) continue;
-
-    let totalDiscount = 0;
-    for (const serviceKey of serviceKeys) {
-      const service = services.get(serviceKey);
-      if (service) {
-        totalDiscount += service.price * (service.count ?? 1) * discount.rate;
-      }
-    }
-    discountAmounts.set(discountKey, totalDiscount);
-  }
-
-  return discountAmounts;
-};
-
-// 할인 적용된 총 가격 계산 함수
-const calcDiscountedTotalPrice = (
-  services: Map<string, ServiceItemProps>,
-  discounts: Map<string, DiscountItemProps>,
-  appliedDiscounts: Map<string, Set<string>>
-): number => {
-  let total = 0;
-  for (const service of services.values()) {
-    let discountRate = 0;
-    for (const [discountKey, serviceKeys] of appliedDiscounts.entries()) {
-      if (serviceKeys.has(service.key)) {
-        const discount = discounts.get(discountKey);
-        if (discount) discountRate += discount.rate;
-      }
-    }
-    total += service.price * (service.count ?? 1) * (1 - discountRate);
-  }
-  return Math.max(total, 0);
-};
+import { updateCartState } from '@/utils/cartPricing';
 
 interface CartState {
-  // 선택된(장바구니에 반영되는) 시술 및 할인 목록
+  // 장바구니에 반영된 시술 및 할인 목록
   selectedServices: Map<string, ServiceItemProps>;
   selectedDiscounts: Map<string, DiscountItemProps>;
 
-  appliedDiscounts: Map<string, Set<string>>; // 할인 적용된 항목 목록
+  // 특정 할인 항목이 적용된 시술 목록
+  appliedDiscounts: Map<string, Set<string>>;
   discountAmounts: Map<string, number>; // 각 할인 항목별 총 할인 금액
-  totalPrice: number;
+  totalPrice: number; // 할인 반영 후 최종 금액
 
-  // 시술 및 할인 페이지에서 변경 중인 (임시) 선택 항목
+  // 사용자가 선택 중인(아직 장바구니에 반영되지 않은) 서비스 및 할인 목록
   localSelectedServices: Map<string, ServiceItemProps>;
   localSelectedDiscounts: Map<string, DiscountItemProps>;
 
-  // 시술 및 할인 항목 선택/해제
+  // 시술 및 할인 항목 추가/제거 (선택 상태 변경)
   toggleLocalService: (key: string, item: ServiceItemProps) => void;
   toggleLocalDiscount: (key: string, item: DiscountItemProps) => void;
 
-  // 현재 선택한 항목을 장바구니(selectedServices, selectedDiscounts)에 반영
+  // 선택한 항목을 장바구니에 반영 (완료 버튼 클릭 시 실행)
   handleComplete: () => void;
 
-  // 임시 선택 항목을 초기화 (기존 선택된 항목으로 되돌림)
+  // 현재 선택 중인 항목 초기화 (기존 장바구니 상태로 복원)
   resetLocalSelections: () => void;
 
-  // 특정 시술 또는 할인이 선택되었는지 확인
+  // 특정 시술 또는 할인이 선택되었는지 확인 (UI 체크 아이콘 유지에 사용)
   isServiceSelected: (key: string) => boolean;
   isDiscountSelected: (key: string) => boolean;
 
-  // 특정 시술 항목의 count 설정
+  // 특정 시술 항목의 수량(count) 변경
   setServiceCount: (key: string, count: number) => void;
 
-  // 특정 시술 항목에 할인 적용 여부
+  // 특정 시술 항목에 할인 적용 여부 설정
   toggleServiceDiscount: (discountKey: string, serviceKey: string) => void;
 }
 
 const useCartStore = create<CartState>((set, get) => ({
+  // 장바구니 초기 상태
   selectedServices: new Map(),
   selectedDiscounts: new Map(),
   appliedDiscounts: new Map(),
   discountAmounts: new Map(),
   totalPrice: 0,
 
+  // 장바구니에 추가되지 않은 (사용자가 선택 중인) 임시 상태
   localSelectedServices: new Map(),
   localSelectedDiscounts: new Map(),
 
+  // 시술 목록에서 항목 선택/선택 해제
   toggleLocalService: (key, item) =>
     set((state) => {
       const newMap = new Map(state.localSelectedServices);
@@ -97,6 +57,7 @@ const useCartStore = create<CartState>((set, get) => ({
       return { localSelectedServices: newMap };
     }),
 
+  // 할인 목록 항목 선택/선택 해제
   toggleLocalDiscount: (key, item) =>
     set((state) => {
       const newMap = new Map(state.localSelectedDiscounts);
@@ -104,51 +65,34 @@ const useCartStore = create<CartState>((set, get) => ({
       return { localSelectedDiscounts: newMap };
     }),
 
+  // 선택한 항목 장바구니에 반영
   handleComplete: () =>
     set((state) => {
       const newSelectedServices = new Map(state.localSelectedServices);
       const newSelectedDiscounts = new Map(state.localSelectedDiscounts);
-      const newAppliedDiscounts = new Map();
+      const newAppliedDiscounts = new Map<string, Set<string>>();
 
+      // 선택된 할인을 모든 시술에 자동 적용
       for (const discountKey of newSelectedDiscounts.keys()) {
-        // 기존에 없던 할인 항목이라면, 모든 시술에 기본 적용
-        if (!newAppliedDiscounts.has(discountKey)) {
-          newAppliedDiscounts.set(
-            discountKey,
-            new Set(newSelectedServices.keys())
-          );
-        } else {
-          // 기존에 있던 할인 항목이면, 선택된 시술 중 삭제된 시술을 필터링
-          newAppliedDiscounts.set(
-            discountKey,
-            new Set(
-              Array.from<string>(
-                newAppliedDiscounts.get(discountKey) ?? []
-              ).filter((serviceKey) => newSelectedServices.has(serviceKey))
-            )
-          );
+        const appliedServiceKeys = new Set(newSelectedServices.keys());
+
+        // 기존 적용된 할인 있다면 유지
+        if (state.appliedDiscounts.has(discountKey)) {
+          for (const key of state.appliedDiscounts.get(discountKey)!) {
+            appliedServiceKeys.add(key);
+          }
         }
 
-        // 만약 적용된 시술이 없는 할인 항목이 존재하면 자동 삭제
-        if (newAppliedDiscounts.get(discountKey)?.size === 0) {
-          newAppliedDiscounts.delete(discountKey);
-          newSelectedDiscounts.delete(discountKey);
+        if (appliedServiceKeys.size > 0) {
+          newAppliedDiscounts.set(discountKey, appliedServiceKeys);
         }
       }
-
-      // 할인 금액 다시 계산
-      const newDiscountAmounts = calculateDiscountAmount(
-        newSelectedServices,
-        newSelectedDiscounts,
-        newAppliedDiscounts
-      );
 
       return {
         selectedServices: newSelectedServices,
         selectedDiscounts: newSelectedDiscounts,
         appliedDiscounts: newAppliedDiscounts,
-        discountAmounts: newDiscountAmounts,
-        totalPrice: calcDiscountedTotalPrice(
+        ...updateCartState(
           newSelectedServices,
           newSelectedDiscounts,
           newAppliedDiscounts
@@ -156,6 +100,7 @@ const useCartStore = create<CartState>((set, get) => ({
       };
     }),
 
+  // 선택 중인 항목 초기화 (기존 장바구니 항목으로 복원)
   resetLocalSelections: () =>
     set(() => ({
       localSelectedServices: new Map(get().selectedServices),
@@ -165,26 +110,26 @@ const useCartStore = create<CartState>((set, get) => ({
   isServiceSelected: (key) => get().localSelectedServices.has(key),
   isDiscountSelected: (key) => get().localSelectedDiscounts.has(key),
 
-  setServiceCount: (key: string, count: number) =>
+  // 시술 수량 변경
+  setServiceCount: (key, count) =>
     set((state) => {
       const newSelectedServices = new Map(state.selectedServices);
+      const newLocalSelectedServices = new Map(state.localSelectedServices);
+
       const service = newSelectedServices.get(key);
       if (!service || service.count === count) return state;
 
-      count > 0
-        ? newSelectedServices.set(key, { ...service, count })
-        : newSelectedServices.delete(key);
-
-      const newDiscountAmounts = calculateDiscountAmount(
-        newSelectedServices,
-        state.selectedDiscounts,
-        state.appliedDiscounts
-      );
+      if (count > 0) {
+        newSelectedServices.set(key, { ...service, count });
+      } else {
+        newSelectedServices.delete(key);
+        newLocalSelectedServices.delete(key); // 시술 목록에서도 선택 상태 해제 (체크 아이콘 사라짐)
+      }
 
       return {
         selectedServices: newSelectedServices,
-        discountAmounts: newDiscountAmounts,
-        totalPrice: calcDiscountedTotalPrice(
+        localSelectedServices: newLocalSelectedServices,
+        ...updateCartState(
           newSelectedServices,
           state.selectedDiscounts,
           state.appliedDiscounts
@@ -192,6 +137,7 @@ const useCartStore = create<CartState>((set, get) => ({
       };
     }),
 
+  // 특정 시술 항목에 할인 적용 여부 설정
   toggleServiceDiscount: (discountKey, serviceKey) =>
     set((state) => {
       const newAppliedDiscounts = new Map(state.appliedDiscounts);
@@ -202,28 +148,28 @@ const useCartStore = create<CartState>((set, get) => ({
         ? discountServices.delete(serviceKey)
         : discountServices.add(serviceKey);
 
-      if (discountServices.size === 0) {
+      if (!discountServices.size) {
         newAppliedDiscounts.delete(discountKey);
       } else {
         newAppliedDiscounts.set(discountKey, discountServices);
       }
 
+      // * 할인이 모든 시술에 적용되지 않는다면
+      // `selectedDiscounts`와 `localSelectedDiscounts`에서도 삭제
+      // 할인 목록에서 선택 상태 해제 (체크 아이콘 사라지도록 처리)
       const newSelectedDiscounts = new Map(state.selectedDiscounts);
+      const newLocalSelectedDiscounts = new Map(state.localSelectedDiscounts);
+
       if (!newAppliedDiscounts.has(discountKey)) {
         newSelectedDiscounts.delete(discountKey);
+        newLocalSelectedDiscounts.delete(discountKey);
       }
-
-      const newDiscountAmounts = calculateDiscountAmount(
-        state.selectedServices,
-        newSelectedDiscounts,
-        newAppliedDiscounts
-      );
 
       return {
         appliedDiscounts: newAppliedDiscounts,
         selectedDiscounts: newSelectedDiscounts,
-        discountAmounts: newDiscountAmounts,
-        totalPrice: calcDiscountedTotalPrice(
+        localSelectedDiscounts: newLocalSelectedDiscounts,
+        ...updateCartState(
           state.selectedServices,
           newSelectedDiscounts,
           newAppliedDiscounts
