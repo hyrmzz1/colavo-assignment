@@ -1,5 +1,6 @@
 import useCartStore from '@/stores/useCartStore';
 import { ServiceItemProps, DiscountItemProps } from '@/types/itemTypes';
+import formatRate from '@/utils/formatRate';
 import { IoClose } from 'react-icons/io5';
 import {
   Select,
@@ -10,10 +11,6 @@ import {
   SelectValue,
 } from './ui/select';
 import { Checkbox } from './ui/checkbox';
-
-const formatRate = (rate: number) => {
-  return rate < 1 ? `${Math.round(rate * 100)}%` : `${rate.toLocaleString()}원`;
-};
 
 interface CartServiceItemProps extends ServiceItemProps {
   itemKey: string;
@@ -32,7 +29,7 @@ export const CartServiceItem = ({
       <div className='grow'>
         <p>{name}</p>
         {/* TODO) currency_code에 맞게 가격 포맷팅 */}
-        <p className='text-gray text-xs'>
+        <p className='text-xs text-gray'>
           {(price * (count ?? 1)).toLocaleString()}원
         </p>
       </div>
@@ -55,7 +52,7 @@ export const CartServiceItem = ({
           </SelectContent>
         </Select>
         <IoClose
-          className='text-gray cursor-pointer'
+          className='cursor-pointer text-gray'
           onClick={() => setServiceCount(itemKey, 0)}
         />
       </div>
@@ -83,7 +80,7 @@ export const CartDiscountItem = ({
     <div className='flex w-full items-center justify-between px-4 py-2'>
       <div className='grow'>
         <p>{name}</p>
-        <p className='text-gray text-xs'>
+        <p className='text-xs text-gray'>
           {Array.from(appliedDiscounts.get(itemKey) ?? [])
             .map((serviceKey) => {
               const service = selectedServices.get(serviceKey);
@@ -95,7 +92,7 @@ export const CartDiscountItem = ({
             })
             .join(', ')}{' '}
         </p>
-        <p className='text-red pt-1 text-sm'>
+        <p className='pt-1 text-sm text-red'>
           -{discountAmounts.get(itemKey)?.toLocaleString() ?? 0}원(
           {formatRate(rate)})
         </p>
@@ -109,7 +106,7 @@ export const CartDiscountItem = ({
             {Array.from(selectedServices.entries()).map(([key, item]) => (
               <div
                 key={key}
-                className='items-top hover:bg-gray-light flex space-x-2 py-1.5 pl-2 pr-8'
+                className='items-top flex space-x-2 py-1.5 pl-2 pr-8 hover:bg-gray-light'
               >
                 <Checkbox
                   id={`checkbox-${key}`}
@@ -124,7 +121,7 @@ export const CartDiscountItem = ({
                     <p>
                       {item.name} x {item.count}개
                     </p>
-                    <p className='text-gray text-xs'>
+                    <p className='text-xs text-gray'>
                       {(item.price * item.count).toLocaleString()}원
                     </p>
                   </label>

@@ -1,9 +1,6 @@
 import { DiscountItemProps } from '@/types/itemTypes';
+import formatRate from '@/utils/formatRate';
 import { IoMdCheckmark } from 'react-icons/io';
-
-const formatRate = (rate: number) => {
-  return rate < 1 ? `${Math.round(rate * 100)}%` : `${rate}원`;
-};
 
 interface DiscountItemComponentProps extends DiscountItemProps {
   isSelected: boolean;
@@ -24,10 +21,10 @@ const DiscountItem = ({
       <div className='grow'>
         <p>{name}</p>
         {/* TODO) currency_code에 맞게 가격 포맷팅 */}
-        <p className='text-red text-xs'>{formatRate(rate)}</p>
+        <p className='text-xs text-red'>{formatRate(rate)}</p>
       </div>
       <div className='h-6 w-6 shrink-0'>
-        {isSelected && <IoMdCheckmark className='text-purple h-6 w-6' />}
+        {isSelected && <IoMdCheckmark className='h-6 w-6 text-purple' />}
       </div>
     </div>
   );
