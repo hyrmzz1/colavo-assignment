@@ -1,8 +1,8 @@
 import useViewStore, { ViewType } from '@/stores/useViewStore';
 import useCartStore from '@/stores/useCartStore';
-import { Button } from './ui/button';
 import useCurrencyCodeStore from '@/stores/useCurrencyCodeStore';
 import formatCurrency from '@/utils/formatCurrency';
+import { Button } from '@/components/ui/button';
 
 const Footer = () => {
   const currView = useViewStore((state) => state.currView);
