@@ -1,7 +1,9 @@
 import { ServiceItemProps } from '@/types/itemTypes';
+import formatCurrency from '@/utils/formatCurrency';
 import { IoMdCheckmark } from 'react-icons/io';
 
 interface ServiceItemComponentProps extends ServiceItemProps {
+  currencyCode: 'KRW' | 'USD';
   isSelected: boolean;
   onClick: () => void;
 }
@@ -9,6 +11,7 @@ interface ServiceItemComponentProps extends ServiceItemProps {
 const ServiceItem = ({
   name,
   price,
+  currencyCode,
   isSelected,
   onClick,
 }: ServiceItemComponentProps) => {
@@ -19,11 +22,12 @@ const ServiceItem = ({
     >
       <div className='grow'>
         <p>{name}</p>
-        {/* TODO) currency_code에 맞게 가격 포맷팅 */}
-        <p className='text-gray text-xs'>{price.toLocaleString()}원</p>
+        <p className='text-xs text-gray'>
+          {formatCurrency(price, currencyCode)}
+        </p>
       </div>
       <div className='h-6 w-6 shrink-0'>
-        {isSelected && <IoMdCheckmark className='text-purple h-6 w-6' />}
+        {isSelected && <IoMdCheckmark className='h-6 w-6 text-purple' />}
       </div>
     </div>
   );

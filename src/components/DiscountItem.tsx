@@ -3,6 +3,7 @@ import formatRate from '@/utils/formatRate';
 import { IoMdCheckmark } from 'react-icons/io';
 
 interface DiscountItemComponentProps extends DiscountItemProps {
+  currencyCode: 'KRW' | 'USD';
   isSelected: boolean;
   onClick: () => void;
 }
@@ -10,6 +11,7 @@ interface DiscountItemComponentProps extends DiscountItemProps {
 const DiscountItem = ({
   name,
   rate,
+  currencyCode,
   isSelected,
   onClick,
 }: DiscountItemComponentProps) => {
@@ -20,8 +22,7 @@ const DiscountItem = ({
     >
       <div className='grow'>
         <p>{name}</p>
-        {/* TODO) currency_code에 맞게 가격 포맷팅 */}
-        <p className='text-xs text-red'>{formatRate(rate)}</p>
+        <p className='text-xs text-red'>{formatRate(rate, currencyCode)}</p>
       </div>
       <div className='h-6 w-6 shrink-0'>
         {isSelected && <IoMdCheckmark className='h-6 w-6 text-purple' />}

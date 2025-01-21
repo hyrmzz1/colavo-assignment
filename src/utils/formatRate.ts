@@ -1,6 +1,9 @@
-// FIX) `${rate}원` 대신 formatCurrency 적용
-const formatRate = (rate: number) => {
-  return rate < 1 ? `${Math.round(rate * 100)}%` : `${rate}원`;
+import formatCurrency from '@/utils/formatCurrency';
+
+const formatRate = (rate: number, currencyCode?: 'KRW' | 'USD') => {
+  return rate < 1
+    ? `${Math.round(rate * 100)}%`
+    : formatCurrency(rate, currencyCode ?? 'KRW');
 };
 
 export default formatRate;
