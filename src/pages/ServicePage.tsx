@@ -29,21 +29,18 @@ const ServicePage = () => {
   return (
     <ul className='divide-y-[1px]'>
       {data &&
-        Object.entries(data.items).map(
-          ([key, item]: [string, ServiceItemProps]) => (
-            <li key={key}>
-              <ServiceItem
-                key={item.key}
-                count={item.count}
-                name={item.name}
-                price={item.price}
-                currencyCode={data.currencyCode}
-                isSelected={isServiceSelected(key)}
-                onClick={() => toggleLocalService(key, { ...item, key })}
-              />
-            </li>
-          )
-        )}
+        Object.entries(data).map(([key, item]: [string, ServiceItemProps]) => (
+          <li key={key}>
+            <ServiceItem
+              key={item.key}
+              count={item.count}
+              name={item.name}
+              price={item.price}
+              isSelected={isServiceSelected(key)}
+              onClick={() => toggleLocalService(key, { ...item, key })}
+            />
+          </li>
+        ))}
     </ul>
   );
 };

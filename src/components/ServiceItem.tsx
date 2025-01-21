@@ -1,9 +1,9 @@
+import useCurrencyCodeStore from '@/stores/useCurrencyCodeStore';
 import { ServiceItemProps } from '@/types/itemTypes';
 import formatCurrency from '@/utils/formatCurrency';
 import { IoMdCheckmark } from 'react-icons/io';
 
 interface ServiceItemComponentProps extends ServiceItemProps {
-  currencyCode: 'KRW' | 'USD';
   isSelected: boolean;
   onClick: () => void;
 }
@@ -11,10 +11,11 @@ interface ServiceItemComponentProps extends ServiceItemProps {
 const ServiceItem = ({
   name,
   price,
-  currencyCode,
   isSelected,
   onClick,
 }: ServiceItemComponentProps) => {
+  const currencyCode = useCurrencyCodeStore((state) => state.currencyCode);
+
   return (
     <div
       className='flex w-full cursor-pointer items-center justify-between px-4 py-2'

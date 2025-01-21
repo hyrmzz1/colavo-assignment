@@ -1,4 +1,5 @@
 import useCartStore from '@/stores/useCartStore';
+import useCurrencyCodeStore from '@/stores/useCurrencyCodeStore';
 import { ServiceItemProps, DiscountItemProps } from '@/types/itemTypes';
 import formatRate from '@/utils/formatRate';
 import { IoClose } from 'react-icons/io5';
@@ -11,6 +12,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { Checkbox } from './ui/checkbox';
+import formatCurrency from '@/utils/formatCurrency';
 
 interface CartServiceItemProps extends ServiceItemProps {
   itemKey: string;
@@ -23,14 +25,14 @@ export const CartServiceItem = ({
   count,
 }: CartServiceItemProps) => {
   const setServiceCount = useCartStore((state) => state.setServiceCount);
+  const currencyCode = useCurrencyCodeStore((state) => state.currencyCode);
 
   return (
     <div className='flex w-full items-center justify-between px-4 py-2'>
       <div className='grow'>
         <p>{name}</p>
-        {/* TODO) currency_code에 맞게 가격 포맷팅 */}
         <p className='text-xs text-gray'>
-          {(price * (count ?? 1)).toLocaleString()}원
+          {formatCurrency(price * (count ?? 1), currencyCode)}
         </p>
       </div>
       <div className='flex items-center gap-x-2'>
@@ -75,6 +77,7 @@ export const CartDiscountItem = ({
   const toggleServiceDiscount = useCartStore(
     (state) => state.toggleServiceDiscount
   );
+  const currencyCode = useCurrencyCodeStore((state) => state.currencyCode);
 
   return (
     <div className='flex w-full items-center justify-between px-4 py-2'>
@@ -90,10 +93,10 @@ export const CartDiscountItem = ({
                   : service.name
                 : null;
             })
-            .join(', ')}{' '}
+            .join(', ')}
         </p>
         <p className='pt-1 text-sm text-red'>
-          -{discountAmounts.get(itemKey)?.toLocaleString() ?? 0}원(
+          -{formatCurrency(discountAmounts.get(itemKey) ?? 0, currencyCode)} (
           {formatRate(rate)})
         </p>
       </div>
@@ -122,7 +125,7 @@ export const CartDiscountItem = ({
                       {item.name} x {item.count}개
                     </p>
                     <p className='text-xs text-gray'>
-                      {(item.price * item.count).toLocaleString()}원
+                      {formatCurrency(item.price * item.count, currencyCode)}
                     </p>
                   </label>
                 </div>

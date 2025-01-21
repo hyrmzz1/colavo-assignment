@@ -29,20 +29,17 @@ const DiscountPage = () => {
   return (
     <ul className='divide-y-[1px]'>
       {data &&
-        Object.entries(data.discounts).map(
-          ([key, item]: [string, DiscountItemProps]) => (
-            <li key={key}>
-              <DiscountItem
-                key={item.key}
-                name={item.name}
-                rate={item.rate}
-                currencyCode={data.currencyCode}
-                isSelected={isDiscountSelected(key)}
-                onClick={() => toggleLocalDiscount(key, { ...item, key })}
-              />
-            </li>
-          )
-        )}
+        Object.entries(data).map(([key, item]: [string, DiscountItemProps]) => (
+          <li key={key}>
+            <DiscountItem
+              key={item.key}
+              name={item.name}
+              rate={item.rate}
+              isSelected={isDiscountSelected(key)}
+              onClick={() => toggleLocalDiscount(key, { ...item, key })}
+            />
+          </li>
+        ))}
     </ul>
   );
 };

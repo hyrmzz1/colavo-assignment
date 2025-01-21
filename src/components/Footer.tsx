@@ -1,6 +1,8 @@
 import useViewStore, { ViewType } from '@/stores/useViewStore';
 import useCartStore from '@/stores/useCartStore';
 import { Button } from './ui/button';
+import useCurrencyCodeStore from '@/stores/useCurrencyCodeStore';
+import formatCurrency from '@/utils/formatCurrency';
 
 const Footer = () => {
   const currView = useViewStore((state) => state.currView);
@@ -13,6 +15,8 @@ const Footer = () => {
   // 푸터의 '완료' 버튼을 누르면 임시 선택된 항목들이 장바구니에 추가된다.
   const handleComplete = useCartStore((state) => state.handleComplete);
   const totalPrice = useCartStore((state) => state.totalPrice);
+
+  const currencyCode = useCurrencyCodeStore((state) => state.currencyCode);
 
   const containerStyles = isCartView
     ? 'border-gray-light'
@@ -31,8 +35,9 @@ const Footer = () => {
         <>
           <div className='flex w-full items-center justify-between'>
             <p className='text-xs text-gray'>합계</p>
-            {/* TODO) totalPrice에 formatCurrency()적용 */}
-            <p className='text-xl'>{totalPrice.toLocaleString()}원</p>
+            <p className='text-xl'>
+              {formatCurrency(totalPrice, currencyCode)}
+            </p>
           </div>
           <Button className='w-full'>다음</Button>
         </>

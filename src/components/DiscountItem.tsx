@@ -1,9 +1,9 @@
+import useCurrencyCodeStore from '@/stores/useCurrencyCodeStore';
 import { DiscountItemProps } from '@/types/itemTypes';
 import formatRate from '@/utils/formatRate';
 import { IoMdCheckmark } from 'react-icons/io';
 
 interface DiscountItemComponentProps extends DiscountItemProps {
-  currencyCode: 'KRW' | 'USD';
   isSelected: boolean;
   onClick: () => void;
 }
@@ -11,10 +11,11 @@ interface DiscountItemComponentProps extends DiscountItemProps {
 const DiscountItem = ({
   name,
   rate,
-  currencyCode,
   isSelected,
   onClick,
 }: DiscountItemComponentProps) => {
+  const currencyCode = useCurrencyCodeStore((state) => state.currencyCode);
+
   return (
     <div
       className='flex w-full cursor-pointer items-center justify-between px-4 py-2'
